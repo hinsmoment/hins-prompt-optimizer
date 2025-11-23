@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
 
-export default function SettingsModal({ isOpen, onClose, onSave }) {
-    const [apiKey, setApiKey] = useState('');
-    const [model, setModel] = useState('gemini-2.5-flash');
+export default function SettingsModal({ isOpen, onClose, apiKey, geminiModel, onSave, initialProvider, initialBaseUrl, initialOpenAiKey, initialOpenAiModel }) {
+    const [localApiKey, setLocalApiKey] = useState(apiKey || '');
+    const [localGeminiModel, setLocalGeminiModel] = useState(geminiModel || 'gemini-2.0-flash-exp');
+
+    const [localProvider, setLocalProvider] = useState(initialProvider || 'gemini');
+    const [localBaseUrl, setLocalBaseUrl] = useState(initialBaseUrl || 'https://api.openai.com/v1');
+    const [localOpenAiKey, setLocalOpenAiKey] = useState(initialOpenAiKey || '');
+    const [localOpenAiModel, setLocalOpenAiModel] = useState(initialOpenAiModel || 'gpt-3.5-turbo');
 
     useEffect(() => {
-        const storedKey = localStorage.getItem('gemini_api_key');
-        if (storedKey) setApiKey(storedKey);
-
-        const storedModel = localStorage.getItem('gemini_model');
-        if (storedModel) setModel(storedModel);
-    }, [isOpen]);
+        if (isOpen) {
+            setLocalApiKey(apiKey || '');
+            setLocalGeminiModel(geminiModel || 'gemini-2.0-flash-exp');
+            setLocalProvider(initialProvider || 'gemini');
+            setLocalBaseUrl(initialBaseUrl || 'https://api.openai.com/v1');
+            setLocalOpenAiKey(initialOpenAiKey || '');
+            setLocalOpenAiModel(initialOpenAiModel || 'gpt-3.5-turbo');
+        }
+    }, [isOpen, apiKey, geminiModel, initialProvider, initialBaseUrl, initialOpenAiKey, initialOpenAiModel]);
 
     const handleSave = () => {
-        localStorage.setItem('gemini_api_key', apiKey);
-        localStorage.setItem('gemini_model', model);
-        onSave(apiKey, model);
+        onSave({
+            apiKey: localApiKey,
+            geminiModel: localGeminiModel,
+            provider: localProvider,
+            baseUrl: localBaseUrl,
+            openAiKey: localOpenAiKey,
+            openAiModel: localOpenAiModel
+        });
         onClose();
     };
 
@@ -30,32 +43,89 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
             <div className="glass-panel fade-in" style={{ width: '90%', maxWidth: '500px', padding: '2rem' }}>
                 <h2 style={{ marginBottom: '1.5rem' }}>Settings</h2>
 
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini Model</label>
-                    <select
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
-                    >
-                        <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (Best Quality)</option>
-                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Balanced)</option>
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest)</option>
-                    </select>
+                <div className="settings-section">
+                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>API Provider</label>
+                    <div className="toggle-group" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                        <button
+                            className={`model-btn ${localProvider === 'gemini' ? 'active' : ''}`}
+                            onClick={() => setLocalProvider('gemini')}
+                            style={{ flex: 1, padding: '0.5rem', cursor: 'pointer', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: localProvider === 'gemini' ? 'var(--accent-primary)' : 'transparent', color: 'white' }}
+                        >
+                            Google Gemini
+                        </button>
+                        <button
+                            className={`model-btn ${localProvider === 'openai' ? 'active' : ''}`}
+                            onClick={() => setLocalProvider('openai')}
+                            style={{ flex: 1, padding: '0.5rem', cursor: 'pointer', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: localProvider === 'openai' ? 'var(--accent-primary)' : 'transparent', color: 'white' }}
+                        >
+                            OpenAI Compatible
+                        </button>
+                    </div>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini API Key</label>
-                    <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="AIzaSy..."
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
-                    />
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                        Your key is stored locally in your browser.
-                    </p>
-                </div>
+                {localProvider === 'gemini' ? (
+                    <>
+                        <div className="settings-section" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini API Key</label>
+                            <input
+                                type="password"
+                                value={localApiKey}
+                                onChange={(e) => setLocalApiKey(e.target.value)}
+                                placeholder="Enter your Gemini API Key"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+                            />
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                                Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)' }}>Google AI Studio</a>
+                            </p>
+                        </div>
+                        <div className="settings-section" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini Model</label>
+                            <select
+                                value={localGeminiModel}
+                                onChange={(e) => setLocalGeminiModel(e.target.value)}
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'white' }}
+                            >
+                                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp (Newest)</option>
+                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                            </select>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="settings-section" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Base URL</label>
+                            <input
+                                type="text"
+                                value={localBaseUrl}
+                                onChange={(e) => setLocalBaseUrl(e.target.value)}
+                                placeholder="e.g., https://api.deepseek.com/v1"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+                            />
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>The API endpoint base URL (e.g., for ModelScope, DeepSeek).</p>
+                        </div>
+                        <div className="settings-section" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>API Key</label>
+                            <input
+                                type="password"
+                                value={localOpenAiKey}
+                                onChange={(e) => setLocalOpenAiKey(e.target.value)}
+                                placeholder="Enter your API Key"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+                            />
+                        </div>
+                        <div className="settings-section" style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Model Name</label>
+                            <input
+                                type="text"
+                                value={localOpenAiModel}
+                                onChange={(e) => setLocalOpenAiModel(e.target.value)}
+                                placeholder="e.g., deepseek-chat, qwen-max"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+                            />
+                        </div>
+                    </>
+                )}
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                     <button
@@ -65,7 +135,7 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                         Cancel
                     </button>
                     <button className="btn-primary" onClick={handleSave}>
-                        Save Key
+                        Save Settings
                     </button>
                 </div>
             </div>

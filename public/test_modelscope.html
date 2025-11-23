@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModelScope API CORS Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #333;
+            color: #fff;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+
+        #output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #333;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            min-height: 100px;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .success {
+            color: #10b981;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ModelScope API CORS Tester</h1>
+    <p>Use this page to test if ModelScope's API allows direct browser calls (CORS).</p>
+
+    <div class="input-group">
+        <label>API Key (Access Token)</label>
+        <input type="password" id="apiKey" placeholder="Enter your ModelScope Access Token">
+    </div>
+
+    <div class="input-group">
+        <label>Model ID</label>
+        <input type="text" id="modelId" value="qwen/Qwen-7B-Chat" placeholder="e.g. qwen/Qwen-7B-Chat">
+    </div>
+
+    <button onclick="testConnection()">Test Connection</button>
+
+    <div id="output">Waiting for test...</div>
+
+    <script>
+        async function testConnection() {
+            const apiKey = document.getElementById('apiKey').value;
+            const modelId = document.getElementById('modelId').value;
+            const output = document.getElementById('output');
+
+            if (!apiKey) {
+                output.textContent = "Please enter an API Key.";
+                return;
+            }
+
+            output.textContent = "Testing connection to ModelScope...";
+
+            // Try standard OpenAI compatible endpoint structure if applicable, 
+            // or ModelScope's specific inference endpoint.
+            // Based on docs, ModelScope often uses: https://api-inference.modelscope.cn/api-inference/v1/models/{model_id}
+
+            const url = `https://api-inference.modelscope.cn/api-inference/v1/models/${modelId}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        input: "Hello, are you there?",
+                        parameters: {}
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    output.innerHTML = `<span class="success">SUCCESS!</span>\n\nModelScope API allows direct browser calls.\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<span class="error">FAILED (${response.status})</span>\n\n${await response.text()}`;
+                }
+            } catch (error) {
+                output.innerHTML = `<span class="error">NETWORK/CORS ERROR</span>\n\n${error.message}\n\nIf you see "Failed to fetch", it is likely a CORS (Cross-Origin Resource Sharing) restriction by ModelScope. This means you CANNOT call it directly from the browser and must use a proxy.`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+
+</html>

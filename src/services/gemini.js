@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+import { MODEL_NANO, MODEL_JIMENG, MODEL_MIDJOURNEY } from '../constants';
+
 export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyParams = {}, geminiModel = 'gemini-2.5-flash') => {
     if (!apiKey) throw new Error("API Key is missing");
 
@@ -7,7 +9,7 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
 
     let systemInstruction = "";
 
-    if (modelType === 'nano-banana') {
+    if (modelType === MODEL_NANO) {
         const arInstruction = midjourneyParams.ar ? `\n      - **Aspect Ratio**: The image MUST be in ${midjourneyParams.ar} format.` : "";
         systemInstruction = `
       You are an expert AI Art Prompt Engineer for Google's Gemini Image Model (Nano Banana).
@@ -23,7 +25,7 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
       
       Output ONLY the final prompt in English. Do not include labels like "Subject:" in the final output, just flow naturally.
     `;
-    } else if (modelType === 'jimeng') {
+    } else if (modelType === MODEL_JIMENG) {
         const arInstruction = midjourneyParams.ar ? `\n      - Aspect Ratio (画幅比例): ${midjourneyParams.ar}` : "";
         systemInstruction = `
       You are an expert AI Art Prompt Engineer for Jimeng AI (SeaDream 4.0).
@@ -45,7 +47,7 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
       
       Output ONLY the final Chinese prompt.
     `;
-    } else if (modelType === 'midjourney') {
+    } else if (modelType === MODEL_MIDJOURNEY) {
         systemInstruction = `
       You are an expert AI Art Prompt Engineer for Midjourney v6.
       Your task is to take a simple user idea and expand it into a detailed Midjourney prompt.
@@ -89,7 +91,7 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
     let responseText = result.response.text().trim();
 
     // Post-processing for Midjourney parameters
-    if (modelType === 'midjourney') {
+    if (modelType === MODEL_MIDJOURNEY) {
         const params = [];
         if (midjourneyParams.ar) params.push(`--ar ${midjourneyParams.ar}`);
         if (midjourneyParams.v) params.push(`--v ${midjourneyParams.v}`);
@@ -100,4 +102,20 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
     }
 
     return responseText;
+};
+
+export const translateText = async (apiKey, text, geminiModel = 'gemini-2.5-flash') => {
+    if (!apiKey) throw new Error("API Key is missing");
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: geminiModel,
+        systemInstruction: "You are a professional translator. Your task is to translate the following AI art prompt into Chinese (Simplified). Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation."
+    });
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: text }] }]
+    });
+
+    return result.response.text().trim();
 };
