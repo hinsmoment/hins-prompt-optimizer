@@ -36,6 +36,7 @@ function App() {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
+    console.log("App Version: 1.2.1 (Context Aware Translation Fix)");
     const storedHistory = localStorage.getItem('prompt_history');
     if (storedHistory) {
       try {
