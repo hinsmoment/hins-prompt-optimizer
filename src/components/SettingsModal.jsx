@@ -2,15 +2,20 @@ import React, { useState, useEffect } from 'react';
 
 export default function SettingsModal({ isOpen, onClose, onSave }) {
     const [apiKey, setApiKey] = useState('');
+    const [model, setModel] = useState('gemini-2.5-flash');
 
     useEffect(() => {
         const storedKey = localStorage.getItem('gemini_api_key');
         if (storedKey) setApiKey(storedKey);
+
+        const storedModel = localStorage.getItem('gemini_model');
+        if (storedModel) setModel(storedModel);
     }, [isOpen]);
 
     const handleSave = () => {
         localStorage.setItem('gemini_api_key', apiKey);
-        onSave(apiKey);
+        localStorage.setItem('gemini_model', model);
+        onSave(apiKey, model);
         onClose();
     };
 
@@ -26,12 +31,26 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
                 <h2 style={{ marginBottom: '1.5rem' }}>Settings</h2>
 
                 <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini Model</label>
+                    <select
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+                    >
+                        <option value="gemini-3-pro-preview">Gemini 3 Pro Preview (Best Quality)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Balanced)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest)</option>
+                    </select>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini API Key</label>
                     <input
                         type="password"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="AIzaSy..."
+                        style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
                     />
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
                         Your key is stored locally in your browser.

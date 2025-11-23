@@ -20,6 +20,7 @@ function App() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [geminiModel, setGeminiModel] = useState(localStorage.getItem('gemini_model') || 'gemini-2.5-flash');
   const [error, setError] = useState('');
 
   const handleOptimize = async (userPrompt) => {
@@ -37,7 +38,8 @@ function App() {
         apiKey,
         selectedModel,
         userPrompt,
-        selectedModel === 'midjourney' ? midjourneyParams : { ar: aspectRatio }
+        selectedModel === 'midjourney' ? midjourneyParams : { ar: aspectRatio },
+        geminiModel
       );
       setResult(optimizedPrompt);
     } catch (err) {
@@ -121,7 +123,10 @@ function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={setApiKey}
+        onSave={(key, model) => {
+          setApiKey(key);
+          setGeminiModel(model);
+        }}
       />
     </div>
   );

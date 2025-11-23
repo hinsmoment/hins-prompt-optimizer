@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyParams = {}) => {
+export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyParams = {}, geminiModel = 'gemini-2.5-flash') => {
     if (!apiKey) throw new Error("API Key is missing");
 
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -61,7 +61,7 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
     }
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: geminiModel,
         systemInstruction: systemInstruction
     });
 
