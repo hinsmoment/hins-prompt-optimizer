@@ -7,7 +7,7 @@ import SettingsModal from './components/SettingsModal';
 import ResultDisplay from './components/ResultDisplay';
 import HistorySidebar from './components/HistorySidebar';
 import { generatePrompt, translateText } from './services/gemini';
-import { generatePromptOpenAI } from './services/openai';
+import { generatePromptOpenAI, translateTextOpenAI } from './services/openai';
 import { MODEL_NANO, MODEL_JIMENG, MODEL_MIDJOURNEY } from './constants';
 import './App.css';
 
@@ -126,10 +126,32 @@ function App() {
   };
 
   const handleTranslate = async () => {
-    if (!result || !result.prompt || !apiKey) return; // Translation currently only uses Gemini API
+    if (!result || !result.prompt) return;
+
+    // Check for API keys based on provider
+    if (apiProvider === 'gemini' && !apiKey) {
+      setError("Please set your Gemini API Key in settings for translation.");
+      setIsSettingsOpen(true);
+      return;
+    }
+    if (apiProvider === 'openai' && !openAiKey) {
+      setError("Please set your OpenAI API Key in settings for translation.");
+      setIsSettingsOpen(true);
+      return;
+    }
 
     try {
-      const translation = await translateText(apiKey, result.prompt, geminiModel);
+      let translation;
+      if (apiProvider === 'gemini') {
+        translation = await translateText(apiKey, result.prompt, geminiModel);
+      } else {
+        // Use OpenAI Compatible Service for translation
+        let effectiveBaseUrl = baseUrl;
+        if (baseUrl.includes('modelscope.cn') && window.location.hostname === 'localhost') {
+          effectiveBaseUrl = '/api/proxy' + baseUrl.replace('https://api-inference.modelscope.cn', '');
+        }
+        translation = await translateTextOpenAI(openAiKey, effectiveBaseUrl, openAiModel, result.prompt);
+      }
 
       const updatedResult = { ...result, translation };
       setResult(updatedResult);
@@ -145,7 +167,7 @@ function App() {
 
     } catch (err) {
       console.error("Translation failed", err);
-      setError("Translation failed. Please try again. (Translation uses Gemini API)");
+      setError(`Translation failed: ${err.message}`);
     }
   };
 

@@ -112,3 +112,48 @@ Output ONLY the prompt text. Do NOT include parameters like --ar or --v yet (the
         throw error;
     }
 };
+
+export const translateTextOpenAI = async (apiKey, baseUrl, modelName, text) => {
+    if (!apiKey) throw new Error("API Key is missing");
+    if (!baseUrl) throw new Error("Base URL is missing");
+
+    let endpoint = baseUrl;
+    if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1);
+    if (!endpoint.endsWith('/chat/completions')) {
+        endpoint = `${endpoint}/chat/completions`;
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+    };
+
+    const body = {
+        model: modelName,
+        messages: [
+            { role: "system", content: "You are a professional translator. Your task is to translate the following AI art prompt into Chinese (Simplified). Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation." },
+            { role: "user", content: text }
+        ],
+        stream: false
+    };
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Translation Error (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+
+    } catch (error) {
+        console.error("OpenAI Translation Error:", error);
+        throw error;
+    }
+};
