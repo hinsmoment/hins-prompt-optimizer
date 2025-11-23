@@ -1,0 +1,5 @@
+/* App specific styles if needed */
+.app-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
