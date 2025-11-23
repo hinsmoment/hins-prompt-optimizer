@@ -141,16 +141,18 @@ function App() {
     }
 
     try {
+      const targetLanguage = selectedModel === MODEL_JIMENG ? 'English' : 'Chinese (Simplified)';
       let translation;
+
       if (apiProvider === 'gemini') {
-        translation = await translateText(apiKey, result.prompt, geminiModel);
+        translation = await translateText(apiKey, result.prompt, geminiModel, targetLanguage);
       } else {
         // Use OpenAI Compatible Service for translation
         let effectiveBaseUrl = baseUrl;
         if (baseUrl.includes('modelscope.cn') && window.location.hostname === 'localhost') {
           effectiveBaseUrl = '/api/proxy' + baseUrl.replace('https://api-inference.modelscope.cn', '');
         }
-        translation = await translateTextOpenAI(openAiKey, effectiveBaseUrl, openAiModel, result.prompt);
+        translation = await translateTextOpenAI(openAiKey, effectiveBaseUrl, openAiModel, result.prompt, targetLanguage);
       }
 
       const updatedResult = { ...result, translation };
@@ -248,6 +250,7 @@ function App() {
             <ResultDisplay
               result={result}
               onTranslate={handleTranslate}
+              targetLanguage={selectedModel === MODEL_JIMENG ? 'English' : 'Chinese'}
             />
           )}
         </main>

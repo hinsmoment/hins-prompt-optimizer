@@ -113,7 +113,7 @@ Output ONLY the prompt text. Do NOT include parameters like --ar or --v yet (the
     }
 };
 
-export const translateTextOpenAI = async (apiKey, baseUrl, modelName, text) => {
+export const translateTextOpenAI = async (apiKey, baseUrl, modelName, text, targetLanguage = 'Chinese (Simplified)') => {
     if (!apiKey) throw new Error("API Key is missing");
     if (!baseUrl) throw new Error("Base URL is missing");
 
@@ -131,7 +131,7 @@ export const translateTextOpenAI = async (apiKey, baseUrl, modelName, text) => {
     const body = {
         model: modelName,
         messages: [
-            { role: "system", content: "You are a professional translator. Your task is to translate the following AI art prompt into Chinese (Simplified). Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation." },
+            { role: "system", content: `You are a professional translator. Your task is to translate the following AI art prompt into ${targetLanguage}. Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation.` },
             { role: "user", content: text }
         ],
         stream: false

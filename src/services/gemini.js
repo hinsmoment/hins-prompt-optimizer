@@ -104,13 +104,13 @@ export const generatePrompt = async (apiKey, modelType, userPrompt, midjourneyPa
     return responseText;
 };
 
-export const translateText = async (apiKey, text, geminiModel = 'gemini-2.5-flash') => {
+export const translateText = async (apiKey, text, geminiModel = 'gemini-2.5-flash', targetLanguage = 'Chinese (Simplified)') => {
     if (!apiKey) throw new Error("API Key is missing");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
         model: geminiModel,
-        systemInstruction: "You are a professional translator. Your task is to translate the following AI art prompt into Chinese (Simplified). Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation."
+        systemInstruction: `You are a professional translator. Your task is to translate the following AI art prompt into ${targetLanguage}. Provide a clear and accurate translation that captures the artistic intent. Output ONLY the translation.`
     });
 
     const result = await model.generateContent({
