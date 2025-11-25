@@ -85,7 +85,7 @@ export default function SettingsModal({ isOpen, onClose, apiKey, geminiModel, on
                                 onChange={(e) => setLocalGeminiModel(e.target.value)}
                                 style={{ width: '100%', padding: '0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'white' }}
                             >
-                                <option value="gemini-3.0-pro">Gemini 3.0 Pro (Latest)</option>
+                                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                                 <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
                                 <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                             </select>

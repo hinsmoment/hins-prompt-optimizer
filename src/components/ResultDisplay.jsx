@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 export default function ResultDisplay({ result, onTranslate, targetLanguage = 'Chinese' }) {
     const [copied, setCopied] = useState(false);
@@ -20,6 +21,19 @@ export default function ResultDisplay({ result, onTranslate, targetLanguage = 'C
         setIsTranslating(false);
     };
 
+    const markdownStyles = {
+        container: {
+            background: 'rgba(0,0,0,0.3)',
+            padding: '1.5rem',
+            borderRadius: 'var(--radius-md)',
+            lineHeight: '1.6',
+            height: '100%',
+            minHeight: '150px',
+            textAlign: 'left',
+            overflow: 'auto'
+        }
+    };
+
     return (
         <div className="glass-panel fade-in" style={{ marginTop: '2rem', padding: '2rem', position: 'relative' }}>
             <h3 style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>Optimized Result</h3>
@@ -30,14 +44,9 @@ export default function ResultDisplay({ result, onTranslate, targetLanguage = 'C
                         Prompt ({targetLanguage === 'English' ? 'Chinese' : 'English'})
                     </div>
                     <div style={{
-                        background: 'rgba(0,0,0,0.3)',
-                        padding: '1.5rem',
-                        borderRadius: 'var(--radius-md)',
+                        ...markdownStyles.container,
                         fontFamily: 'monospace',
-                        lineHeight: '1.6',
-                        whiteSpace: 'pre-wrap',
-                        height: '100%',
-                        minHeight: '150px'
+                        whiteSpace: 'pre-wrap'
                     }}>
                         {promptText}
                     </div>
@@ -48,17 +57,28 @@ export default function ResultDisplay({ result, onTranslate, targetLanguage = 'C
                         <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                             Translation / Analysis ({targetLanguage})
                         </div>
-                        <div style={{
-                            background: 'rgba(0,0,0,0.3)',
-                            padding: '1.5rem',
-                            borderRadius: 'var(--radius-md)',
-                            fontFamily: 'sans-serif',
-                            lineHeight: '1.6',
-                            whiteSpace: 'pre-wrap',
-                            height: '100%',
-                            color: '#e2e8f0'
-                        }}>
-                            {translationText}
+                        <div style={markdownStyles.container} className="markdown-content">
+                            <ReactMarkdown
+                                components={{
+                                    h1: ({node, ...props}) => <h1 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--accent-primary)'}} {...props} />,
+                                    h2: ({node, ...props}) => <h2 style={{fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--accent-primary)'}} {...props} />,
+                                    h3: ({node, ...props}) => <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem', color: 'var(--accent-primary)'}} {...props} />,
+                                    p: ({node, ...props}) => <p style={{marginBottom: '0.75rem'}} {...props} />,
+                                    ul: ({node, ...props}) => <ul style={{marginBottom: '0.75rem', paddingLeft: '1.5rem'}} {...props} />,
+                                    ol: ({node, ...props}) => <ol style={{marginBottom: '0.75rem', paddingLeft: '1.5rem'}} {...props} />,
+                                    li: ({node, ...props}) => <li style={{marginBottom: '0.25rem'}} {...props} />,
+                                    code: ({node, inline, ...props}) => 
+                                        inline 
+                                            ? <code style={{background: 'rgba(139, 92, 246, 0.2)', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.9em'}} {...props} />
+                                            : <code style={{display: 'block', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: 'var(--radius-sm)', overflow: 'auto', marginBottom: '0.75rem'}} {...props} />,
+                                    pre: ({node, ...props}) => <pre style={{marginBottom: '0.75rem'}} {...props} />,
+                                    blockquote: ({node, ...props}) => <blockquote style={{borderLeft: '3px solid var(--accent-primary)', paddingLeft: '1rem', marginBottom: '0.75rem', color: 'var(--text-secondary)'}} {...props} />,
+                                    strong: ({node, ...props}) => <strong style={{color: 'var(--accent-primary)'}} {...props} />,
+                                    a: ({node, ...props}) => <a style={{color: 'var(--accent-primary)', textDecoration: 'underline'}} {...props} />
+                                }}
+                            >
+                                {translationText}
+                            </ReactMarkdown>
                         </div>
                     </div>
                 ) : (
@@ -81,12 +101,12 @@ export default function ResultDisplay({ result, onTranslate, targetLanguage = 'C
                         >
                             {isTranslating ? (
                                 <>
-                                    <span className="spinner" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+                                    <span className="spinner"></span>
                                     Translating...
                                 </>
                             ) : (
                                 <>
-                                    🌐 Translate to {targetLanguage}
+                                    Translate to {targetLanguage}
                                 </>
                             )}
                         </button>
@@ -101,11 +121,11 @@ export default function ResultDisplay({ result, onTranslate, targetLanguage = 'C
                     marginTop: '1.5rem',
                     fontSize: '0.9rem',
                     padding: '0.5rem 1rem',
-                    background: copied ? '#10b981' : undefined, // Green when copied
+                    background: copied ? '#10b981' : undefined,
                     transition: 'all 0.3s ease'
                 }}
             >
-                {copied ? '✓ Copied!' : 'Copy Prompt to Clipboard'}
+                {copied ? 'Copied!' : 'Copy Prompt to Clipboard'}
             </button>
         </div>
     );

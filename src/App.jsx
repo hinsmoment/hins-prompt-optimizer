@@ -6,6 +6,7 @@ import PromptBuilder from './components/PromptBuilder';
 import SettingsModal from './components/SettingsModal';
 import ResultDisplay from './components/ResultDisplay';
 import HistorySidebar from './components/HistorySidebar';
+import ThemeToggle from './components/ThemeToggle';
 import { generatePrompt, translateText } from './services/gemini';
 import { generatePromptOpenAI, translateTextOpenAI } from './services/openai';
 import { MODEL_NANO, MODEL_JIMENG, MODEL_MIDJOURNEY } from './constants';
@@ -16,15 +17,18 @@ function App() {
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [midjourneyParams, setMidjourneyParams] = useState({
     ar: '16:9',
-    v: '6.0',
+    v: '7',
     s: '250',
-    c: '0'
+    c: '0',
+    style: '',
+    q: '1',
+    sref: ''
   });
   const [result, setResult] = useState(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const [geminiModel, setGeminiModel] = useState(() => localStorage.getItem('gemini_model') || 'gemini-2.0-flash-exp');
+  const [geminiModel, setGeminiModel] = useState(() => localStorage.getItem('gemini_model') || 'gemini-2.5-flash');
 
   // New state for OpenAI Compatible
   const [apiProvider, setApiProvider] = useState(() => localStorage.getItem('api_provider') || 'gemini');
@@ -34,6 +38,7 @@ function App() {
 
   const [error, setError] = useState('');
   const [history, setHistory] = useState([]);
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
     console.log("App Version: 1.2.1 (Context Aware Translation Fix)");
@@ -46,6 +51,11 @@ function App() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const saveHistory = (newHistory) => {
     setHistory(newHistory);
@@ -188,6 +198,35 @@ function App() {
     saveHistory([]);
   };
 
+  const handleDeleteHistory = (index) => {
+    const updatedHistory = history.filter((_, i) => i !== index);
+    saveHistory(updatedHistory);
+  };
+
+  const handleExportHistory = () => {
+    const exportData = history.map(item => ({
+      model: item.model,
+      userPrompt: item.userPrompt,
+      optimizedPrompt: typeof item.result === 'string' ? item.result : item.result.prompt,
+      translation: typeof item.result === 'object' ? item.result.translation : null,
+      timestamp: item.timestamp
+    }));
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'prompt-history-' + new Date().toISOString().split('T')[0] + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   return (
     <div className="app-container" style={{ display: 'flex', gap: '2rem', maxWidth: '1400px' }}>
       {/* Sidebar for History */}
@@ -196,6 +235,8 @@ function App() {
           history={history}
           onSelect={handleHistorySelect}
           onClear={handleClearHistory}
+          onDelete={handleDeleteHistory}
+          onExport={handleExportHistory}
         />
       </div>
 
@@ -209,13 +250,16 @@ function App() {
               Transform simple ideas into masterpiece prompts.
             </p>
           </div>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.5rem' }}
-            title="Settings"
-          >
-            ⚙️
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.5rem' }}
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </header>
 
         <main className="fade-in" style={{ animationDelay: '0.1s' }}>
